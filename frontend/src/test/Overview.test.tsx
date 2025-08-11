@@ -1,3 +1,12 @@
+
+jest.mock('../services/axios', () => ({
+    __esModule: true,
+    default: {
+        get: jest.fn(),
+        post: jest.fn(),
+    },
+}));
+
 import { render, screen } from '@testing-library/react';
 import Overview from '../screens/SyllabusView/Overview/Overview';
 import { BrowserRouter } from 'react-router-dom';
@@ -36,7 +45,7 @@ describe('<Overview />', () => {
                 <Overview />
             </BrowserRouter>
         );
-        
+
         expect(await screen.findByText(/Intro/i)).toBeInTheDocument();
         expect(await screen.findByText(/Course and section/i)).toBeInTheDocument();
         expect(await screen.findByText(/Class policies and rules/i)).toBeInTheDocument();
