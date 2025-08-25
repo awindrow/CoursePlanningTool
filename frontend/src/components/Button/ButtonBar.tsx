@@ -1,8 +1,8 @@
 import React from "react";
-import ReusableButton from "../../../components/Button/ReusableButton";
+import ReusableButton from "./ReusableButton";
 import {FaArrowLeft, FaArrowRight, FaEye, FaRegSave, FaRegWindowClose} from "react-icons/fa";
-import SafeIcon from "../../../utils/ComponentWrapper";
-import HomeButton from "../../../assets/images/HomeButton.png"
+import SafeIcon from "../../utils/ComponentWrapper";
+import HomeButton from "../../assets/images/HomeButton.png"
 import "./ButtonBar.css";
 
 interface ButtonBarProps {

@@ -1,4 +1,4 @@
-import { createApiCaller } from "../../utils/apiFactory";
+import {ApiResult, createApiCaller} from "../../utils/apiFactory";
 import {SHEET_COLUMNS} from "../../utils/handlers/sheetColumns";
 
 export interface Course {
@@ -18,7 +18,7 @@ export interface Course {
  */
 export const getNewCourseId = (
     userId: string
-): Promise<{ course_id: string } | null> => {
+): Promise<ApiResult<{ course_id: string }>> => {
     return createApiCaller<{ course_id: string }>({
         url: "getNewCourseId/",
         method: "POST",
@@ -34,7 +34,7 @@ export const getNewCourseId = (
 export const updateCourseValues = (
     course_id: string,
     values: Record<string, string>
-): Promise<void | null> => {
+): Promise<ApiResult<void>> => {
     return createApiCaller<void>({
         url: "updateValue/",
         method: "POST",
@@ -49,28 +49,29 @@ export const updateCourseValues = (
 /**
  * Loads all courses for the current user.
  */
-export const getCourses = async (): Promise<Course[] | null> => {
-    const raw = await createApiCaller<Record<string, Record<string, string>>>({
+export const getCourses = async (): Promise<ApiResult<Course[]>> => {
+    const res = await createApiCaller<Record<string, Record<string, string>>>({
         url: "getSheet/",
         method: "POST",
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
         data: {}, // empty body for POST
     })();
+    if (!res.ok) return res;
 
-    if (!raw) return null;
-
-    return Object.entries(raw).map(([course_id, courseData]) => ({
+    const list: Course[] = Object.entries(res.data).map(([course_id, courseData]) => ({
         course_id,
         course_title_syllabus: courseData["Course Title"] || "",
-        subj_code_syllabus:   courseData["Course Code"]  || "",
-        crse_number_syllabus: courseData["Course Number"]|| "",
+        subj_code_syllabus: courseData["Course Code"] || "",
+        crse_number_syllabus: courseData["Course Number"] || "",
         instructor_name_syllabus: courseData["Instructor Name"] || "",
         term_syllabus: courseData["Semester"] || "",
-        year_syllabus: courseData["Year"]     || "",
-        last_edited:   courseData["Last Edited"] || "",
+        year_syllabus: courseData["Year"] || "",
+        last_edited: courseData["Last Edited"] || "",
         ...courseData,
     }));
+
+    return { ok: true, data: list };
 };
 
 /**
@@ -78,17 +79,17 @@ export const getCourses = async (): Promise<Course[] | null> => {
  */
 export const getCourseData = (
     course_id: string
-): Promise<Record<string, string> | null> => {
+): Promise<ApiResult<Record<string, string>>> => {
     return createApiCaller<Record<string, string>>({
         url: "getValue/",
         method: "POST",
-        withCredentials: true,
         data: {
             course_id,
-            list_of_columns: SHEET_COLUMNS,  // ← now imported
+            list_of_columns: SHEET_COLUMNS,
         },
     })();
 };
+
 
 /**
  * (Alternative path) Creates a new course row and returns its ID.
@@ -99,45 +100,45 @@ export interface CreateCourseResponse {
     course_id: string;
 }
 
-export const createNewCourse = (
+export interface CreateCourseResponse {
+    course_id: string;
+}
+
+export const createNewCourse = async (
     data: Record<string, string>
-): Promise<CreateCourseResponse | null> => {
-    return createApiCaller<Record<string, any>>({
+): Promise<ApiResult<CreateCourseResponse>> => {
+    const res = await createApiCaller<any>({
         url: "createNewCourse/",
         method: "POST",
-        withCredentials: true,
         data: { dict_of_columns_and_vals: data },
-    })().then(raw => {
-        if (!raw) return null;
-        // Normalize whatever key the backend gives us:
-        const id =
-            (raw as any).course_id ||
-            (raw as any).courseId ||
-            (raw as any)["courseId:"];
-        if (!id) return null;
-        return { course_id: id };
-    });
+    })();
+    if (!res.ok) return res;
+
+    const id =
+        res.data?.course_id ??
+        res.data?.courseId ??
+        res.data?.courseID ??
+        null;
+
+    return id ? { ok: true, data: { course_id: id } } : { ok: false };
 };
 
 export const deleteCourseRow = (
-    course_id: string ): Promise <{course_id: string} | null> => {
-    return createApiCaller<{ course_id: string}> ({
+    course_id: string
+): Promise<ApiResult<{ course_id: string }>> => {
+    return createApiCaller<{ course_id: string }>({
         url: "deleteCourse/",
         method: "POST",
-        withCredentials: true,
-        headers: {"content-Type" : "application/json"},
-        data: {course_id},
+        data: { course_id },
     })();
 };
 
 export const duplicateCourse = (
     course_id: string
-): Promise <any> => {
-    return createApiCaller<{ course_id: string}> ({
+): Promise<ApiResult<{ course_id: string }>> => {
+    return createApiCaller<{ course_id: string }>({
         url: "duplicateCourse/",
         method: "POST",
-        withCredentials: true,
-        headers: {"content-Type" : "application/json"},
-        data: {course_id},
+        data: { course_id },
     })();
 };

@@ -55,9 +55,9 @@ const BasicInfo = () =>{
             console.log("Loaded course ID:", course_id);
 
             // 3) Now fetch the row
-            const backendData = await getCourseData(course_id);
-            if (backendData) {
-                const remapped = mapBackendDataToFormFields(backendData);
+            const res = await getCourseData(course_id);
+            if (res.ok) {
+                const remapped = mapBackendDataToFormFields(res.data);
                 setFormData(remapped);
             }
         };

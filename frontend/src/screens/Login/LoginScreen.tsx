@@ -1,61 +1,74 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useRef, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../../hooks/useLogin";
-import ecsuWhite from '../../assets/images/ecsu-logo-white-stacked-alt.png';
+import ecsuWhite from "../../assets/images/ecsu-logo-white-stacked-alt.png";
 import "./LoginScreen.css";
-import bgImage from '../../assets/images/login_background.png'
-import LoginIcon from '../../assets/images/Login_Page_Icon.png'
+import bgImage from "../../assets/images/login_background.png";
+import LoginIcon from "../../assets/images/Login_Page_Icon.png";
 import RedirectingModal from "../../components/RedirectingModal/RedirectingModal";
 
 const LoginScreen: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { error, handleLogin } = useLogin();
-    const navigate = useNavigate();
+    const usernameRef = useRef<HTMLInputElement>(null);
 
-    // New modal states
+    const { isLoading, handleLogin } = useLogin();
+    const navigate = useNavigate();
+    const location = useLocation() as any;
+    const redirectTo = location.state?.from ?? "/course-page";
+
+    // Modal state
     const [modalVisible, setModalVisible] = useState(false);
     const [modalStatus, setModalStatus] = useState<"loading" | "success">("loading");
     const [modalTitle, setModalTitle] = useState("");
     const [modalMessage, setModalMessage] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    useEffect(() => {
+        usernameRef.current?.focus();
+    }, []);
+
+    const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            // Show modal in loading state
-            setModalTitle("Logging In");
-            setModalMessage("Please wait while we verify your credentials...");
-            setModalStatus("loading");
-            setModalVisible(true);
 
-            await handleLogin(username, password);
+        const u = username.trim();
+        const p = password;
 
-            // On success
+        if (!u || !p || isLoading) return;
+
+        // loading modal
+        setModalTitle("Logging In");
+        setModalMessage("Please wait while we verify your credentials...");
+        setModalStatus("loading");
+        setModalVisible(true);
+
+        const ok = await handleLogin(u, p);
+
+        if (ok) {
             setModalStatus("success");
             setModalTitle("Login Successful");
             setModalMessage("Welcome! Redirecting to your course page...");
-
             setTimeout(() => {
                 setModalVisible(false);
-                navigate("/course-page");
-            }, 1500);
-        } catch (err) {
-            console.error(err);
+                navigate(redirectTo, { replace: true });
+            }, 900);
+        } else {
+            // Global error modal is already shown by handleApiError
             setModalVisible(false);
+            usernameRef.current?.focus();
         }
     };
 
     return (
-        <div className="login-page-wrapper"
-             style = {{
-                 backgroundImage: `url(${bgImage})`,
-                 backgroundSize: 'cover',
-                 backgroundPosition: 'center',
-                 backgroundRepeat: 'no-repeat',
-                 backgroundAttachment: 'fixed',
-                 minHeight: '100vh',
-             }}
-
+        <div
+            className="login-page-wrapper"
+            style={{
+                backgroundImage: `url(${bgImage})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundAttachment: "fixed",
+                minHeight: "100vh",
+            }}
         >
             {/* Logo */}
             <div className="logo-container">
@@ -71,54 +84,60 @@ const LoginScreen: React.FC = () => {
                 <div className="left-section">
                     <h1>Course Planning Tool</h1>
                     <p>
-                        This course planning tool is an interactive platform that makes it easy to design your courses and download a complete syllabus through guided steps.
-                        You can edit and duplicate your courses as often as needed. Whether you're creating an ELAC course or any other type of course, this tool will streamline your planning process.
+                        This course planning tool makes it easy to design courses and download a complete syllabus through guided steps.
+                        Create a new course or edit an existing one at any time.
                     </p>
-                    <p className="details-bottom">
-                        Create an account or login to get started.
-                    </p>
+                    <p className="details-bottom">Create an account or log in to get started.</p>
 
                     <h2>How It Works:</h2>
                     <div className="how-block">
-                        <img
-                        src = {LoginIcon}
-                        alt = "Login Icon"
-                        className="icon-login"
-                        />
-
+                        <img src={LoginIcon} alt="Login Icon" className="icon-login" />
                         <div className="description-container">
-                            <div> Create A New Course <br/> or Edit An Existing Course.</div>
-                            <div>Develop or Edit Your Course <br/> Through Guided, Step-by-step Planning Tool</div>
-                            <div>Generate Your Course Syllabus As A <br/> Word Document</div>
+                            <div>Create or edit a course</div>
+                            <div>Plan with step-by-step guidance</div>
+                            <div>Export your syllabus as a Word document</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Section */}
                 <div className="right-section">
-                    <form onSubmit={handleSubmit} className="login-form">
+                    <form onSubmit={onSubmit} className="login-form" noValidate>
+                        <label className="sr-only" htmlFor="username">Username</label>
                         <input
+                            id="username"
+                            ref={usernameRef}
                             type="text"
                             placeholder="Username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            autoComplete="username"
                             required
+                            aria-invalid={false}
                         />
+
+                        <label className="sr-only" htmlFor="password">Password</label>
                         <input
+                            id="password"
                             type="password"
                             placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
                             required
+                            aria-invalid={false}
                         />
-                        <button type="submit">Login</button>
-                    </form>
 
-                    {error && <p className="error-message">{error}</p>}
+                        <button
+                            type="submit"
+                            disabled={isLoading || !username.trim() || !password}
+                        >
+                            {isLoading ? "Logging in…" : "Login"}
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            {/* Reusable modal with props */}
             <RedirectingModal
                 visible={modalVisible}
                 status={modalStatus}

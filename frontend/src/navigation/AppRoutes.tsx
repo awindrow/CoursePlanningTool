@@ -27,6 +27,7 @@ import LearningResources from "../screens/SyllabusView/LearningResources/Learnin
 import Checklist from "../screens/SyllabusView/Checklist";
 import CoursePage from "../screens/Home/CoursePage";
 import NotFoundPage from "../screens/NotFoundPage";
+import RequireAuth from "../context/RequireAuth";
 
 const AppRoutes = () => {
     const [modalMessage, setModalMessage] = useState<{ message: string; code?: number } | null>(null);
@@ -71,7 +72,10 @@ const AppRoutes = () => {
 
                 {/*Application EndPoints*/}
                 <Route path="/" element={<LoginScreen />} />
-                <Route path  ="course-page" element={<CoursePage/>}/>
+                <Route path  ="course-page" element={
+                    <RequireAuth>
+                        <CoursePage/>
+                    </RequireAuth>}/>
                 <Route path = "overview" element={<Overview/>}/>
                 <Route path = "basic-info" element={<BasicInfo/>}/>
                 <Route path = "course-description" element={<Description/>}/>

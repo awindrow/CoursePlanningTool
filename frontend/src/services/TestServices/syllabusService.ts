@@ -1,4 +1,4 @@
-import { createApiCaller } from "../../utils/apiFactory";
+import { createApiCaller, ApiResult } from "../../utils/apiFactory";
 
 export const saveToBackend = async (
     course_id: string,
@@ -14,14 +14,17 @@ export const saveToBackend = async (
     })();
 };
 
-export const previewSyllabus = async (course_id: string): Promise<Blob | null> => {
-    return await createApiCaller<Blob>({
+export const previewSyllabus = (
+    course_id: string
+): Promise<ApiResult<Blob>> => {
+    return createApiCaller<Blob>({
         method: "POST",
         url: "/preview/",
         data: { course_id },
         responseType: "blob",
     })();
 };
+
 
 export const logoutUser = async () => {
     return await createApiCaller<void>({

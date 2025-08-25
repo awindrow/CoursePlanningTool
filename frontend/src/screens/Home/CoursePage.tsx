@@ -45,8 +45,8 @@ const CoursePage: React.FC = () => {
     useEffect(() => {
         (async () => {
             try {
-                const result = await getCourses();
-                setCourses(result ?? []);
+                const res = await getCourses();
+                setCourses(res.ok ? res.data : []);
             } catch (err) {
                 console.error('Failed to fetch courses:', err);
                 setCourses([]);

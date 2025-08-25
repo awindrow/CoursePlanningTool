@@ -1,39 +1,35 @@
-// useLogin.ts This hook manages the hook with regards to handling user data pre google implementation
+// hooks/useLogin.ts
+import { useCallback, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { loginUser, logoutUser } from "../services/auth";
 
-import {useState} from "react";
-import {login,logout} from "../services/TestServices/LoginAPiError";
-import {useAuth} from "../context/AuthContext";
+export const useLogin = () => {
+    const { setUser } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
+    const handleLogin = useCallback(async (user: string, password: string) => {
+        setIsLoading(true);
+        const res = await loginUser(user.trim(), password);
+        setIsLoading(false);
 
-export const useLogin = () =>{
-    const [message, setMessage] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-
-    const {setUser} = useAuth();
-
-    const handleLogin = async (user: string, password: string) => {
-        setError(null);
-        setMessage(null);
-        try {
-            const data = await login(user, password);
-            setUser(data.user);
-            setMessage(`Welcome, ${data.user}!`);
-            return data;
-        } catch (err: any) {
-            setError(err.message);
-            throw err;
+        if (res.ok) {
+            setUser(res.data.user);
+            return true;
         }
-    };
+        return false;
+    }, [setUser]);
 
-    const handleLogout = async () => {
-        try {
-            await logout();
-            setMessage(null);
-            setError(null);
-        } catch (err: any) {
-            setError("Failed to log out.");
+    const handleLogout = useCallback(async () => {
+        setIsLoading(true);
+        const res = await logoutUser();
+        setIsLoading(false);
+
+        if (res.ok) {
+            setUser(null as any);
+            return true;
         }
-    };
+        return false;
+    }, [setUser]);
 
-    return {message, error, handleLogin, handleLogout};
-}
+    return { isLoading, handleLogin, handleLogout };
+};

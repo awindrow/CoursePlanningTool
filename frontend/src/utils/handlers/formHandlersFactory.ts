@@ -1,9 +1,7 @@
 // src/utils/handlers/formHandlersFactory.ts
-
-import { saveToBackend, logoutUser, previewSyllabus } from "../../services/TestServices/syllabusService";
-
+import { saveToBackend, previewSyllabus } from "../../services/TestServices/syllabusService"; // these should now return ApiResult<void> / ApiResult<Blob>
 import { jsonFieldsMapper } from "../jsonFieldsMapper";
-import { createNewCourse } from "../../services/course/courseService";
+import { createNewCourse } from "../../services/course/courseService"; // should return ApiResult<{ course_id: string }>
 
 type ModalControls = {
     setVisible: (visible: boolean) => void;
@@ -12,10 +10,41 @@ type ModalControls = {
     setMessage: (message: string) => void;
 };
 
+type FieldDef = { content: string; backendKey?: string; type: string };
+
+const mapFields = (
+    formData: Record<string, string>,
+    fields?: FieldDef[]
+): Record<string, string> => {
+    if (!fields) return jsonFieldsMapper(formData);
+    return fields.reduce((acc, field) => {
+        if (
+            (field.type === "text-box" || field.type === "syllabus-text") &&
+            field.backendKey &&
+            formData[field.content]
+        ) {
+            acc[field.backendKey] = formData[field.content];
+        }
+        return acc;
+    }, {} as Record<string, string>);
+};
+
+const getSavedCourseId = (): string | undefined => {
+    const saved = localStorage.getItem("currentCourseData");
+    if (!saved) return;
+    try {
+        const savedData = JSON.parse(saved);
+        return savedData?.course_id as string | undefined;
+    } catch {
+        console.warn("Invalid saved course data");
+        return;
+    }
+};
+
 export const createSaveHandler = (
     formData: Record<string, string>,
     modal: ModalControls,
-    fields?: { content: string; backendKey?: string; type: string }[]
+    fields?: FieldDef[]
 ) => {
     return async () => {
         modal.setTitle("Saving Changes");
@@ -23,49 +52,20 @@ export const createSaveHandler = (
         modal.setStatus("loading");
         modal.setVisible(true);
 
-        const saved = localStorage.getItem("currentCourseData");
-        let course_id: string | undefined;
-        if (saved) {
-            try {
-                const savedData = JSON.parse(saved);
-                course_id = savedData.course_id;
-            } catch {
-                console.warn("Invalid saved course data");
-            }
-        }
-
-       //Smart Mappings
-        let mappedData: Record<string, string>;
-        if (fields) {
-            mappedData = fields.reduce((acc, field) => {
-                if (
-                    (field.type === "text-box" || field.type === "syllabus-text") &&
-                    field.backendKey &&
-                    formData[field.content]
-                ) {
-                    acc[field.backendKey] = formData[field.content];
-                }
-                return acc;
-            }, {} as Record<string, string>);
-        } else {
-            mappedData = jsonFieldsMapper(formData); // fallback to BasicInfo mapping
-        }
+        let mappedData = mapFields(formData, fields);
+        let course_id = mappedData["course_id"] ?? getSavedCourseId();
 
         if (!course_id) {
-            const result = await createNewCourse(mappedData);
-            const newId = result?.course_id;
-            if (!newId) {
-                modal.setVisible(false);
-                return;
-            }
-            course_id = newId;
+            const res = await createNewCourse(mappedData);
+            if (!res.ok) { modal.setVisible(false); return; }
+            course_id = res.data.course_id;
         }
 
-        mappedData["course_id"] = course_id;
-        localStorage.setItem("currentCourseData", JSON.stringify({ ...mappedData, course_id }));
+        mappedData = { ...mappedData, course_id };
+        localStorage.setItem("currentCourseData", JSON.stringify({ ...mappedData }));
 
-        const result = await saveToBackend(course_id, mappedData);
-        if (result !== null) {
+        const saveRes = await saveToBackend(course_id, mappedData);
+        if (saveRes.ok) {
             modal.setStatus("success");
             modal.setTitle("Saved!");
             modal.setMessage("Your changes were saved successfully.");
@@ -76,12 +76,11 @@ export const createSaveHandler = (
     };
 };
 
-
 export const createSaveAndExitHandler = (
     formData: Record<string, string>,
     navigate: (path: string) => void,
     modal: ModalControls,
-    fields?: { content: string; backendKey?: string; type: string }[]
+    fields?: FieldDef[]
 ) => {
     return async () => {
         modal.setTitle("Saving & Exiting");
@@ -89,58 +88,36 @@ export const createSaveAndExitHandler = (
         modal.setStatus("loading");
         modal.setVisible(true);
 
-        let mappedData: Record<string, string>;
-
-        // Use description field mapping if fields are provided
-        if (fields) {
-            mappedData = fields.reduce((acc, field) => {
-                if (
-                    (field.type === "text-box" || field.type === "syllabus-text") &&
-                    field.backendKey &&
-                    formData[field.content]
-                ) {
-                    acc[field.backendKey] = formData[field.content];
-                }
-                return acc;
-            }, {} as Record<string, string>);
-        } else {
-            mappedData = jsonFieldsMapper(formData); // Fallback to basic info logic
-        }
-
-        let course_id = mappedData["course_id"];
+        let mappedData = mapFields(formData, fields);
+        let course_id = mappedData["course_id"] ?? getSavedCourseId();
 
         if (!course_id) {
-            const result = await createNewCourse(mappedData);
-            const newId = result?.course_id;
-            if (!newId) {
-                modal.setVisible(false);
-                return;
-            }
-            course_id = newId;
+            const res = await createNewCourse(mappedData);
+            if (!res.ok) { modal.setVisible(false); return; }
+            course_id = res.data.course_id;
             mappedData["course_id"] = course_id;
             localStorage.setItem("currentCourseData", JSON.stringify(mappedData));
         }
 
-        const saveResult = await saveToBackend(course_id, mappedData);
-        if (saveResult !== null) {
-                modal.setStatus("success");
-                modal.setTitle("Saved & Exiting");
-                modal.setMessage("Redirecting you to My Courses Home Page...");
-                setTimeout(() => {
-                    modal.setVisible(false);
-                    navigate("/course-page");
-                }, 1500);
-            } else {
+        const saveRes = await saveToBackend(course_id!, mappedData);
+        if (saveRes.ok) {
+            modal.setStatus("success");
+            modal.setTitle("Saved & Exiting");
+            modal.setMessage("Redirecting you to My Courses Home Page...");
+            setTimeout(() => {
                 modal.setVisible(false);
-            }
+                navigate("/course-page");
+            }, 1500);
+        } else {
+            modal.setVisible(false);
+        }
     };
 };
-
 
 export const createPreviewHandler = (
     formData: Record<string, string>,
     modal: ModalControls,
-    fields?: { content: string; backendKey?: string; type: string }[]
+    fields?: FieldDef[]
 ) => {
     return async () => {
         modal.setTitle("Generating Preview");
@@ -148,68 +125,42 @@ export const createPreviewHandler = (
         modal.setStatus("loading");
         modal.setVisible(true);
 
-        let mappedData: Record<string, string>;
+        let mappedData = mapFields(formData, fields);
 
-        // Handle dynamic field mapping (for Description or other field-based pages)
-        if (fields) {
-            mappedData = fields.reduce((acc, field) => {
-                if (
-                    (field.type === "text-box" || field.type === "syllabus-text") &&
-                    field.backendKey &&
-                    formData[field.content]
-                ) {
-                    acc[field.backendKey] = formData[field.content];
-                }
-                return acc;
-            }, {} as Record<string, string>);
-        } else {
-            mappedData = jsonFieldsMapper(formData);
-        }
-
-        // Inject course_id if saved
-        const saved = localStorage.getItem("currentCourseData");
-        if (saved) {
-            const savedData = JSON.parse(saved);
-            if (savedData.course_id) {
-                mappedData["course_id"] = savedData.course_id;
-            }
-        }
+        // inject saved course_id if present
+        const savedId = getSavedCourseId();
+        if (savedId) mappedData["course_id"] = savedId;
 
         let course_id = mappedData["course_id"];
 
-        // If no ID yet, create one
         if (!course_id) {
-            const result = await createNewCourse(mappedData);
-            const newId = result?.course_id;
-            if (!newId) {
-                modal.setVisible(false);
-                return;
-            }
-            course_id = newId;
+            const res = await createNewCourse(mappedData);
+            if (!res.ok) { modal.setVisible(false); return; }
+            course_id = res.data.course_id;
             mappedData["course_id"] = course_id;
         }
 
-        // Save latest data
+        // Save latest data locally
         localStorage.setItem("currentCourseData", JSON.stringify(mappedData));
 
-        const saveResult = await saveToBackend(course_id, mappedData);
-        if (saveResult !== null) {
-            const blob = await previewSyllabus(course_id);
-            if (blob) {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "syllabus_preview.docx";
-                a.click();
-                window.URL.revokeObjectURL(url);
+        // Save to backend first
+        const saveRes = await saveToBackend(course_id!, mappedData);
+        if (!saveRes.ok) { modal.setVisible(false); return; }
 
-                modal.setStatus("success");
-                modal.setTitle("Preview Ready!");
-                modal.setMessage("Your preview has been downloaded.");
-                setTimeout(() => modal.setVisible(false), 1500);
-            } else {
-                modal.setVisible(false);
-            }
+        // Then request preview blob
+        const prevRes = await previewSyllabus(course_id!);
+        if (prevRes.ok) {
+            const url = window.URL.createObjectURL(prevRes.data);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "syllabus_preview.docx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            modal.setStatus("success");
+            modal.setTitle("Preview Ready!");
+            modal.setMessage("Your preview has been downloaded.");
+            setTimeout(() => modal.setVisible(false), 1500);
         } else {
             modal.setVisible(false);
         }
