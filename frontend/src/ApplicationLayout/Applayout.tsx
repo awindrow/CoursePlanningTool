@@ -2,6 +2,7 @@ import React from "react";
 import HeaderBanner from "./Header/HeaderBanner";
 import SyllabusNav from "./Navigation/SyllabusNav";
 import ButtonBar from "../components/Button/ButtonBar";
+import PageFooter from "./Footer/Footer";
 
 
 interface AppLayoutProps {
@@ -40,6 +41,8 @@ const Applayout: React.FC<AppLayoutProps> = ({
             <main style={{ padding: "0.1rem" }}>
                 {children}
             </main>
+
+            <PageFooter/>
         </div>
     );
 };
