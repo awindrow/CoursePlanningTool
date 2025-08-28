@@ -2,7 +2,10 @@
 import AppLayout from "../../../ApplicationLayout/Applayout";
 import React, {useEffect, useState} from "react";
 import {getCourseData} from "../../../services/course/courseService"
-import {createSaveHandler, createSaveAndExitHandler, createPreviewHandler} from "../../../utils/handlers/formHandlersFactory";
+import {createSaveHandler,
+    createSaveAndExitHandler,
+    createPreviewHandler
+} from "../../../utils/handlers/formHandlersFactory";
 import {useNavigate, useLocation} from "react-router-dom";
 import {FaExclamationTriangle } from 'react-icons/fa'
 import {loadBasicInfoFields, BasicInfoData} from "../../../utils/loadBasicInfoFields";
@@ -12,7 +15,6 @@ import {handleBack, handleNext,} from "../../../components/Button/ButtonLogic";
 import RedirectingModal from "../../../components/RedirectingModal/RedirectingModal";
 import SectionAccordion from "./SectionAccordion";
 import './BasicInfo.css'
-
 
 
 const BasicInfo = () =>{
