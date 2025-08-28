@@ -103,7 +103,7 @@ const LoginScreen: React.FC = () => {
                 {/* Right Section */}
                 <div className="right-section">
                     <form onSubmit={onSubmit} className="login-form" noValidate>
-                        <label className="sr-only" htmlFor="username">Username</label>
+                        <label className="sr-only" htmlFor="username"></label>
                         <input
                             id="username"
                             ref={usernameRef}
@@ -116,7 +116,7 @@ const LoginScreen: React.FC = () => {
                             aria-invalid={false}
                         />
 
-                        <label className="sr-only" htmlFor="password">Password</label>
+                        <label className="sr-only" htmlFor="password"></label>
                         <input
                             id="password"
                             type="password"
