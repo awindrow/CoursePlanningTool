@@ -10,7 +10,7 @@ interface Props {
 
 const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
     const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         onChange(field.content, e.target.value);
     };
@@ -20,6 +20,24 @@ const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
             <div className="syllabus-alert">
                 ️ {field.content}
             </div>
+        );
+    }
+    if(field.type  === 'select' && field.options) {
+        return (
+            <label>
+                {field.content}
+                <select
+                value = {value}
+                onChange={handleInputChange}
+                required={field.required}
+                >
+                    <option value ="">Select</option>
+                    {field.options.map((opt, i) => (
+                        <option key = {i} value={opt}>{opt}</option>
+                    ))}
+
+                </select>
+            </label>
         );
     }
 
