@@ -8,7 +8,9 @@ export interface SyllabusContent {
     layoutRow: number;
     content: string;
     type: string;
+    placeholder: string;
     required: boolean;
+    options?: string[];
     iconPath?: string;
     backendKey?: string;
 }
@@ -33,9 +35,15 @@ export async function loadSyllabusContent(path: string): Promise<SyllabusContent
                     layoutRow: row.layoutRow ? parseInt(row.layoutRow, 10) : 0,
                     content: row.content,
                     type: row.type,
+                    placeholder: row.placeholder,
                     required: row.required === "true",
                     iconPath: row.iconPath || undefined,
-                    backendKey: row.backendKey || undefined
+                    backendKey: row.backendKey || undefined,
+                    options: row.options
+                        ? row.options.split(/[,|]/).map((opt: string) => opt.trim()).filter((opt: string) => opt !== '') // Parse options from CSV if provided
+                        : (row.type === "select"
+                            ? row.placeholder.split(',').map((opt: string) => opt.trim()) // Use placeholder as fallback for select options
+                            : undefined) // Otherwise, undefined
                 }));
                 resolve(parsed);
             },
