@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from datetime import datetime
 
 '''
 Provides functionality for creating/updating/displaying tables to keep track of 
@@ -9,6 +10,10 @@ The following tables are created when the module is loaded:
 - reads
 - writes
 - deletes
+
+
+In each table, (user_id, date_id) is a primary key and date_id is the 
+number of days since 01/01/1970.
 '''
 
 def create_tables():
@@ -20,55 +25,71 @@ def create_tables():
     for t in ['reads', 'writes', 'deletes'] :
         cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {t} (
-            date_id INTEGER PRIMARY KEY
-                    DEFAULT (CAST(julianday('now') - julianday('1970-01-01') AS INTEGER)),
-            number INTEGER
+            user_id INTEGER, 
+            date_id DEFAULT (CAST(julianday('now') - julianday('1970-01-01') AS INTEGER)),
+            number INTEGER,
+            PRIMARY KEY (user_id, date_id)
         )
         ''')
-
 
     conn.commit()
     conn.close()
 
-def increase_number(table, amount):
-    '''Increases the 'number' column of 'table' by 'amount' '''
+def increase_number(table, user_id, amount):
+    '''Increases the 'number' column of 'table' by 'amount' 
+       for current (user_id, date_id)
+    '''
     conn = sqlite3.connect('firestore_stats.db')
     cursor = conn.cursor()
 
-   # Increment if exists, else insert with 1
+   # Insert the amount, or increment if (user_id, date_id) exists
     cursor.execute(f"""
-        INSERT INTO {table} (date_id, number)
-        VALUES (
+        INSERT INTO {table} (user_id, date_id, number)
+        VALUES ('{user_id}',
             CAST(julianday('now') - julianday('1970-01-01') AS INTEGER), {amount}
         )
-        ON CONFLICT(date_id) DO UPDATE SET number = number + {amount}
+        ON CONFLICT(user_id, date_id) DO UPDATE SET number = number + {amount}
     """)
 
     conn.commit()
     conn.close()
 
 
-def increase_number_reads(amount) :
+def increase_number_reads(user_id, amount) :
     '''Increases the number of reads'''
-    increase_number('reads', amount)
+    increase_number('reads', user_id, amount)
 
-def increase_number_writes(amount) :
+def increase_number_writes(user_id, amount) :
     '''Increases the number of writes'''
-    increase_number('writes', amount)
+    increase_number('writes', user_id, amount)
 
-def increase_number_deletes(amount) :
+def increase_number_deletes(user_id, amount) :
     '''Increases the number of deletes'''
-    increase_number('deletes', amount)
+    increase_number('deletes', user_id, amount)
 
 
 # TO DO: limit to current date?
-def get_table(table):
+def get_table(table, user_id = None, today = False):
     '''Returns a pandas data frame of all rows of 'table' '''
     conn = sqlite3.connect("firestore_stats.db")
     cursor = conn.cursor()
 
-    # Fetch all rows
-    cursor.execute(f"SELECT * FROM {table}")
+    qry = f"SELECT * FROM {table}"
+
+    if today :
+
+        t = datetime.now() - datetime(1970,1,1)    # calculate date_id
+
+        if user_id :
+            qry += f""" WHERE user_id = '{user_id}' AND date_id = {t.days}"""
+        
+        else :
+            qry += f""" WHERE date_id = {t.days}"""
+
+    elif user_id :
+        qry += f""" WHERE user_id = '{user_id}'"""
+
+    cursor.execute(qry)
     rows = cursor.fetchall()
 
     # Get column names from the cursor
@@ -82,15 +103,14 @@ def get_table(table):
     df['date_id'] = pd.to_datetime(df['date_id'], origin='1970-01-01', unit='D')
     return df
 
+def get_reads(user_id = None, today = False) :
+    return get_table('reads', user_id, today)
 
-def get_reads() :
-    return get_table('reads')
+def get_writes(user_id = None, today = False) :
+    return get_table('writes', user_id, today)
 
-def get_writes() :
-    return get_table('writes')
-
-def get_deletes() :
-    return get_table('deletes')
+def get_deletes(user_id = None, today = False) :
+    return get_table('deletes', user_id, today)
 
 
 def delete_all_tables():
@@ -110,8 +130,12 @@ def delete_all_tables():
     conn.close()
 
 
-def summarize_tables():
-    '''Returns pandas data frame of number of reads, writes, and deletes'''
+def summarize_tables(byUser = False):
+    '''
+    Returns pandas data frame of number of reads, writes, and deletes.
+    If 'byUser' is True, then show stats for each user
+    '''
+
     # get reads, writes, and deletes
     a = get_reads()
     a= a.rename(columns = {'number': 'num_reads'})
@@ -123,10 +147,13 @@ def summarize_tables():
     c = c.rename(columns = {'number': 'num_deletes'})
 
     # merge results
-    tmp = a.merge(b, how = 'outer', on = 'date_id')
-    final = tmp.merge(c, how = 'outer', on = 'date_id')
-    final = final.reindex(columns = ['date_id', 'num_reads', 'num_writes' ,'num_deletes'])
+    tmp = a.merge(b, how = 'outer', on = ['user_id', 'date_id'])
+    final = tmp.merge(c, how = 'outer', on = ['user_id', 'date_id'])
+    final = final.reindex(columns = ['user_id', 'date_id', 'user_id', 'num_reads', 'num_writes' ,'num_deletes'])
     final = final.dropna(how = 'all').fillna(0)
+
+    if not byUser :
+        return final.drop('user_id', axis = 1).groupby('date_id', as_index = False).sum()
 
     return final
 
