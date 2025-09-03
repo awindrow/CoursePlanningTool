@@ -82,7 +82,15 @@ const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
 
     return (
         <div>
-            <label>{field.content}</label>
+            <label>{field.content}
+            <input
+                type={field.type}
+                placeholder={field.placeholder}
+                value={value}
+                onChange={handleInputChange}
+                required={field.required}
+            />
+            </label>
         </div>
     );
 };

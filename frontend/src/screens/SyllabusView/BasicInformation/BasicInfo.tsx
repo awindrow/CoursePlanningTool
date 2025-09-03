@@ -8,19 +8,19 @@ import {createSaveHandler,
 } from "../../../utils/handlers/formHandlersFactory";
 import {useNavigate, useLocation} from "react-router-dom";
 import {FaExclamationTriangle } from 'react-icons/fa'
-import {loadBasicInfoFields, BasicInfoData} from "../../../utils/loadBasicInfoFields";
+import {loadSyllabusContent, SyllabusContent} from "../../../utils/loadSyllabusContent";
 import { mapBackendDataToFormFields } from "../../../utils/backendToFormMapper";
 import SafeIcon from "../../../utils/ComponentWrapper";
 import {handleBack, handleNext,} from "../../../components/Button/ButtonLogic";
 import RedirectingModal from "../../../components/RedirectingModal/RedirectingModal";
-import SectionAccordion from "./SectionAccordion";
+import SyllabusSectionAccordion from "../SyllabusComponents/SyllabusAccordion";
 import './BasicInfo.css'
 
 
 const BasicInfo = () =>{
 
     // State to store the loaded form fields from CSV
-    const [fields, setFields] = useState<BasicInfoData[]>([]);
+    const [fields, setFields] = useState<SyllabusContent[]>([]);
 
 
     //Tracks user-entered form data
@@ -64,7 +64,7 @@ const BasicInfo = () =>{
             }
         };
 
-        loadBasicInfoFields("/data/basic_info_fields.csv").then(setFields);
+        loadSyllabusContent("/data/basic_info_fields.csv").then(setFields);
         loadCourseData();
     }, []);
 
@@ -96,7 +96,7 @@ const BasicInfo = () =>{
         if(!acc[field.section]) acc[field.section] = [];
         acc[field.section].push(field);
         return acc;
-    },  {} as Record<string, BasicInfoData[]>)
+    },  {} as Record<string, SyllabusContent[]>)
 
     return (
         <div>
@@ -120,7 +120,7 @@ const BasicInfo = () =>{
 
                 {/* Render each section using the SectionAccordion component */}
                 {Object.entries(groupedSections).map(([section, sectionFields]) =>(
-                    <SectionAccordion
+                    <SyllabusSectionAccordion
                         key={section}                 // React key for each section
                         sectionName={section}         // Name of the section
                         fields={sectionFields}        // Fields belonging to this section
