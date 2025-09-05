@@ -4,6 +4,7 @@ import { showErrorModal } from "../utils/errorHandler";
 import RedirectingModal from './../components/RedirectingModal/RedirectingModal';
 import CompetencyTable from '../components/Tables/CompetencyTable1';
 import CompetencyTable2 from '../components/Tables/CompetencyTable2';
+import AppLayout from "../../src/ApplicationLayout/Applayout";
 
 import GoogleLogin from '../components/google_login.js'
 
@@ -69,45 +70,48 @@ const TestPage: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h1>Component Test Page</h1>
-            <ul style={{ lineHeight: "2rem", listStyle: "square" }}>
-                <li><Link to="/courseSchedule">Course Schedule Page</Link></li>
-                <li><Link to="/grade-table">Grade Table Page</Link></li>
-            </ul>
+        <div>
+            <AppLayout/>
+            <div style={{ padding: "2rem" }}>
+                <h1>Component Test Page</h1>
+                <ul style={{ lineHeight: "2rem", listStyle: "square" }}>
+                   <li><Link to="/courseSchedule">Course Schedule Page</Link></li>
+                    <li><Link to="/grade-table">Grade Table Page</Link></li>
+                </ul>
 
-            <hr />
-            <h2>Google Login</h2>
+                <hr />
+                <h2>Google Login</h2>
 
-            <GoogleLogin></GoogleLogin>
-            <hr />
+                <GoogleLogin></GoogleLogin>
+                <hr />
 
-            <div style={{ marginTop: "2rem" }}>
-                <h2>Trigger Error Modals</h2>
-                <button onClick={() => triggerError(400)}>Trigger 400 (Bad Request)</button><br />
-                <button onClick={() => triggerError(401)}>Trigger 401 (Unauthorized)</button><br />
-                <button onClick={() => triggerError(404)}>Trigger 404 (Not Found)</button><br />
-                <button onClick={() => triggerError(500)}>Trigger 500 (Internal Server Error)</button><br />
-                <button onClick={() => triggerError(999)}>Trigger Unknown Error</button>
+                <div style={{ marginTop: "2rem" }}>
+                    <h2>Trigger Error Modals</h2>
+
+                    <button onClick={() => triggerError(400)}>Trigger 400 (Bad Request)</button><br />
+                    <button onClick={() => triggerError(401)}>Trigger 401 (Unauthorized)</button><br />
+                    <button onClick={() => triggerError(404)}>Trigger 404 (Not Found)</button><br />
+                    <button onClick={() => triggerError(500)}>Trigger 500 (Internal Server Error)</button><br />
+                    <button onClick={() => triggerError(999)}>Trigger Unknown Error</button>
+                </div>
+
+                <div style={{ marginTop: "2rem" }}>
+                    <h2>Simulate Real Form Logic</h2>
+                    <button onClick={handleSimulateSave}>Simulate Save</button><br />
+                    <button onClick={simulateSaveAndExit}>Simulate Save and Exit</button><br />
+                    <button onClick={simulatePreview}>Simulate Preview Download</button>
             </div>
 
-            <div style={{ marginTop: "2rem" }}>
-                <h2>Simulate Real Form Logic</h2>
-                <button onClick={handleSimulateSave}>Simulate Save</button><br />
-                <button onClick={simulateSaveAndExit}>Simulate Save and Exit</button><br />
-                <button onClick={simulatePreview}>Simulate Preview Download</button>
+                <RedirectingModal
+                    visible={modalVisible}
+                    status={modalStatus}
+                    title={modalTitle}
+                    message={modalMessage}
+                />
             </div>
-
-            <RedirectingModal
-                visible={modalVisible}
-                status={modalStatus}
-                title={modalTitle}
-                message={modalMessage}
-            />
-	
-	    <div style = {{ marginTop: "2rem" }}><CompetencyTable/>
-		<CompetencyTable2/>
-	    </div>
+            <div style = {{ marginTop: "2rem" }}><CompetencyTable/>
+                <CompetencyTable2/>
+            </div>
         </div>
 
 

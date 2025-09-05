@@ -80,6 +80,37 @@ const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
         );
     }
 
+    //CheckboxGroupings
+    if (field.type === 'checkbox-group' && field.options){
+        return(
+            <div className="checkbox-group">
+                <label>{field.content}</label>
+                <div className="checkbox-options">
+                    {field.options.map((day, idx) => (
+                        <label key={idx}>
+                            <input
+                                type="checkbox"
+                                checked={value.includes(day)}
+                                value={day}
+                                onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    let updatedValue = value.split(',').filter(Boolean);
+                                    if (isChecked) {
+                                        updatedValue.push(day);
+                                    } else {
+                                        updatedValue = updatedValue.filter((v) => v !== day);
+                                    }
+                                    onChange(field.content, updatedValue.join(','));
+                                }}
+                                />
+                            {day}
+                        </label>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    
     return (
         <div>
             <label>{field.content}
