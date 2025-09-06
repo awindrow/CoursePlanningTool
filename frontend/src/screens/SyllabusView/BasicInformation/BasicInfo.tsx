@@ -2,25 +2,22 @@
 import AppLayout from "../../../ApplicationLayout/Applayout";
 import React, {useEffect, useState} from "react";
 import {getCourseData} from "../../../services/course/courseService"
-import {createSaveHandler,
-    createSaveAndExitHandler,
-    createPreviewHandler
-} from "../../../utils/handlers/formHandlersFactory";
+import {createSaveHandler, createSaveAndExitHandler, createPreviewHandler} from "../../../utils/handlers/formHandlersFactory";
 import {useNavigate, useLocation} from "react-router-dom";
 import {FaExclamationTriangle } from 'react-icons/fa'
-import {loadSyllabusContent, SyllabusContent} from "../../../utils/loadSyllabusContent";
+import {loadBasicInfoFields, BasicInfoData} from "../../../utils/loadBasicInfoFields";
 import { mapBackendDataToFormFields } from "../../../utils/backendToFormMapper";
 import SafeIcon from "../../../utils/ComponentWrapper";
 import {handleBack, handleNext,} from "../../../components/Button/ButtonLogic";
 import RedirectingModal from "../../../components/RedirectingModal/RedirectingModal";
-import SyllabusSectionAccordion from "../SyllabusComponents/SyllabusAccordion";
 import './BasicInfo.css'
+import SectionAccordion from "./SectionAccordion";
 
 
 const BasicInfo = () =>{
 
     // State to store the loaded form fields from CSV
-    const [fields, setFields] = useState<SyllabusContent[]>([]);
+    const [fields, setFields] = useState<BasicInfoData[]>([]);
 
 
     //Tracks user-entered form data
@@ -64,7 +61,7 @@ const BasicInfo = () =>{
             }
         };
 
-        loadSyllabusContent("/data/basic_info_fields.csv").then(setFields);
+        loadBasicInfoFields("/data/basic_info_fields.csv").then(setFields);
         loadCourseData();
     }, []);
 
@@ -96,7 +93,7 @@ const BasicInfo = () =>{
         if(!acc[field.section]) acc[field.section] = [];
         acc[field.section].push(field);
         return acc;
-    },  {} as Record<string, SyllabusContent[]>)
+    },  {} as Record<string, BasicInfoData[]>)
 
     return (
         <div>
@@ -120,7 +117,7 @@ const BasicInfo = () =>{
 
                 {/* Render each section using the SectionAccordion component */}
                 {Object.entries(groupedSections).map(([section, sectionFields]) =>(
-                    <SyllabusSectionAccordion
+                    <SectionAccordion
                         key={section}                 // React key for each section
                         sectionName={section}         // Name of the section
                         fields={sectionFields}        // Fields belonging to this section
