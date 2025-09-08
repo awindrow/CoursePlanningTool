@@ -5,7 +5,7 @@ import {getCourseData} from "../../../services/course/courseService"
 import {createSaveHandler, createSaveAndExitHandler, createPreviewHandler} from "../../../utils/handlers/formHandlersFactory";
 import {useNavigate, useLocation} from "react-router-dom";
 import {FaExclamationTriangle } from 'react-icons/fa'
-import {loadBasicInfoFields, BasicInfoData} from "../../../utils/loadBasicInfoFields";
+import { loadBasicInfoFields, BasicInfoData } from "../../../utils/loadBasicInfoFields";
 import { mapBackendDataToFormFields } from "../../../utils/backendToFormMapper";
 import SafeIcon from "../../../utils/ComponentWrapper";
 import {handleBack, handleNext,} from "../../../components/Button/ButtonLogic";

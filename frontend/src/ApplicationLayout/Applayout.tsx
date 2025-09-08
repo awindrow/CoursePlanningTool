@@ -42,7 +42,6 @@ const Applayout: React.FC<AppLayoutProps> = ({
                 {children}
             </main>
 
-            <PageFooter/>
         </div>
     );
 };

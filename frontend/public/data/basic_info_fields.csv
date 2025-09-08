@@ -1,4 +1,4 @@
-section,row,layoutRow,content,type,placeholder,required,options
+section,row,layoutRow,label,type,placeholder,required,options
 Course Information,1,1,Subject Code,text,Enter subject code,true,
 Course Information,1,1,Course Number,text,Enter course number,true,
 Course Information,1,1,Course Title,text,Enter course title,true,

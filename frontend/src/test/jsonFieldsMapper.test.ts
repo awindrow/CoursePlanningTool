@@ -8,7 +8,7 @@ jest.mock("../utils/fieldMappings", () => ({
     }
 }));
 
-jest.mock("../utils/allowableCalls", () => ({
+jest.mock("../utils/validInputs", () => ({
     allowedBackendKeys: new Set([
         "course_subject",
         "instructor_name",

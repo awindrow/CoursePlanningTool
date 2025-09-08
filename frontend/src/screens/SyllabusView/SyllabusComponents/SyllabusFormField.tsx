@@ -10,7 +10,7 @@ interface Props {
 
 const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
     const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         onChange(field.content, e.target.value);
     };
@@ -20,24 +20,6 @@ const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
             <div className="syllabus-alert">
                 ️ {field.content}
             </div>
-        );
-    }
-    if(field.type  === 'select' && field.options) {
-        return (
-            <label>
-                {field.content}
-                <select
-                value = {value}
-                onChange={handleInputChange}
-                required={field.required}
-                >
-                    <option value ="">Select</option>
-                    {field.options.map((opt, i) => (
-                        <option key = {i} value={opt}>{opt}</option>
-                    ))}
-
-                </select>
-            </label>
         );
     }
 
@@ -80,37 +62,6 @@ const SyllabusFormField: React.FC<Props> = ({ field, value, onChange }) => {
         );
     }
 
-    //CheckboxGroupings
-    if (field.type === 'checkbox-group' && field.options){
-        return(
-            <div className="checkbox-group">
-                <label>{field.content}</label>
-                <div className="checkbox-options">
-                    {field.options.map((day, idx) => (
-                        <label key={idx}>
-                            <input
-                                type="checkbox"
-                                checked={value.includes(day)}
-                                value={day}
-                                onChange={(e) => {
-                                    const isChecked = e.target.checked;
-                                    let updatedValue = value.split(',').filter(Boolean);
-                                    if (isChecked) {
-                                        updatedValue.push(day);
-                                    } else {
-                                        updatedValue = updatedValue.filter((v) => v !== day);
-                                    }
-                                    onChange(field.content, updatedValue.join(','));
-                                }}
-                                />
-                            {day}
-                        </label>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-    
     return (
         <div>
             <label>{field.content}

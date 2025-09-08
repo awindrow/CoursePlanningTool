@@ -1,6 +1,5 @@
 // Import Papa Parse for CSV parsing
 import Papa from 'papaparse';
-
 // Define the type for a field in the Syllabus Contents.
 export interface SyllabusContent {
     section: string;

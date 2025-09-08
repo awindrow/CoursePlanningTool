@@ -12,6 +12,7 @@ interface Props {
 
 const FormField: React.FC<Props> = ({ field, value, onChange }) => {
     // Handles input changes for text, select, and textarea fields
+    const safeValue = value ?? "";
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         onChange(field.label, e.target.value); // Call the onChange callback with the updated value
     };
@@ -22,7 +23,7 @@ const FormField: React.FC<Props> = ({ field, value, onChange }) => {
             <label>
                 {field.label}
                 <select
-                    value={value}
+                    value={safeValue}
                     onChange={handleInputChange}
                     required={field.required}
                 >
@@ -42,7 +43,7 @@ const FormField: React.FC<Props> = ({ field, value, onChange }) => {
                 {field.label}
                 <p className="helper-text">{field.placeholder}</p> {/* Placeholder text as helper text */}
                 <textarea
-                    value={value}                      // Current value
+                    value={safeValue}                      // Current value
                     onChange={handleInputChange}      // Handle changes
                     required={field.required}         // Mark as required if specified
                 />
@@ -64,7 +65,7 @@ const FormField: React.FC<Props> = ({ field, value, onChange }) => {
                                 value={day}
                                 onChange={(e) => {                 // Handle checkbox toggles
                                     const isChecked = e.target.checked;
-                                    let updatedValue = value.split(',').filter(Boolean);
+                                    let updatedValue = safeValue.split(',').filter(Boolean);
                                     if (isChecked) {
                                         updatedValue.push(day);     // Add the checked option
                                     } else {
@@ -88,7 +89,7 @@ const FormField: React.FC<Props> = ({ field, value, onChange }) => {
             <input
                 type={field.type}                      // Input type (e.g., "text", "number")
                 placeholder={field.placeholder}        // Placeholder text
-                value={value}                          // Current value
+                value={safeValue}                          // Current value
                 onChange={handleInputChange}           // Handle changes
                 required={field.required}              // Mark as required if specified
             />

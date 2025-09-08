@@ -1,7 +1,7 @@
 // This file takes the dictionary data structure from fieldMappings and assigns them accordingly.
 
 import { fieldMappings } from "./fieldMappings"; // Import the mapping dictionary
-import {allowedBackendKeys} from './allowableCalls'
+import {allowedBackendKeys} from './validInputs'
 
 /**
  * Maps frontend field labels to backend field keys based on the fieldMappings.
