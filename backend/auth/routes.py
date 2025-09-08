@@ -1,8 +1,9 @@
 from flask import request, redirect, session, jsonify, url_for
 from flask_login import UserMixin, login_user, login_required, logout_user, current_user
 
-from backend.services.app_services import get_gs_editor
 from backend.models.login import User
+#from backend.services.gs_editor import gsEditor
+from backend.services.app_services import get_fs_editor
 
 import google_auth_oauthlib.flow
 import logging, json, os, requests
@@ -66,6 +67,11 @@ def oauth2callback():
 @login_required
 @auth_bp.route('profile/') 
 def profile() :
+
+    if not 'access_token' in session :
+        # Must return none since frontend considers any response ok 
+        return None
+    
     if not session['access_token']:
         return redirect(url_for('auth.google_login', _external = True))
     
@@ -80,7 +86,7 @@ def profile() :
         name = user_info['name']
         user = User(email)       
         login_user(user)
-        return jsonify(id = email, name = name)        
+        return jsonify(user = email, name = name)        
     else:
         return(f"Failed to fetch user info: {response.status_code} {response.text}")        
 
