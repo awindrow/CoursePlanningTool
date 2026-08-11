@@ -38,6 +38,7 @@
     "coverage": "cross-env CI=true react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
     "myComponents": "node test-runner.js components",
+    "start:mock": "cross-env REACT_APP_USE_MSW=true react-scripts start",
     "check_ids": "cd src/screens/SyllabusView/Data && node check_ids.mjs"
   },
   "eslintConfig": {
@@ -59,7 +60,7 @@
     ]
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
-  "main": "src/index.js",
+  "main": "src/index.tsx",
   "keywords": [],
   "author": "",
   "license": "ISC",
