@@ -14,9 +14,11 @@ test('Assignment component load testor from data', () => {
 /**
  * Assignment one
  */
+
 expect(screen.getByDisplayValue("Assignment one")).toBeInTheDocument();
 expect (screen.getByDisplayValue("5%")).toBeInTheDocument();
 expect (screen.getByDisplayValue("This assignment is used to test an assignment")).toBeInTheDocument();
+
 /**
  * Assignment two
  */
