@@ -9,7 +9,6 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "ajv": "^8.0.0",
@@ -66,6 +65,7 @@
   "license": "ISC",
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
+    "@testing-library/user-event": "^14.6.8",
     "@types/jest": "^29.5.14",
     "@types/papaparse": "^5.3.16",
     "autoprefixer": "^10.4.21",
